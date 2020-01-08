@@ -25,13 +25,32 @@ def respond(response, channel):
 
 
 def parse_arxiv_mention(msg):
+    return_msg = None
+
+    # first replace arxiv urls
     regex = re.compile('.*arxiv.org/pdf/(.+)\\.pdf.*')
+    #regex = re.compile('.*<https://arxiv.org/pdf/(.+)\\.pdf>.*')
     match = regex.match(msg)
     if match:
         article = match.group(1)
-        msg = msg.replace(f'arxiv.org/pdf/{article}.pdf', f'arxiv.org/abs/{article}')
-        return msg
-    return None
+        vers_regex = re.compile('^(.*)v[0-9]$')
+        vers_match = vers_regex.match(article)
+        lean_article = article
+        if vers_match:
+            lean_article = vers_match.group(1)
+        #return_msg = msg.replace(f'<https://arxiv.org/pdf/{article}.pdf>', f'https://arxiv.org/abs/{lean_article}')
+        return_msg = msg.replace(f'arxiv.org/pdf/{article}.pdf', f'arxiv.org/abs/{lean_article}')
+
+
+    # next replace openreview urls
+    regex = re.compile('.*openreview.net/pdf.id.*')
+    match = regex.match(msg)
+    if match:
+        if return_msg is None:
+            return_msg = msg
+        return_msg = return_msg.replace('openreview.net/pdf?id=', 'openreview.net/forum?id=')
+    
+    return return_msg
 
 def parse_message(slack_events):
     for event in slack_events:
