@@ -20,7 +20,8 @@ def respond(response, channel):
     slack_client.api_call(
         "chat.postMessage",
         channel=channel,
-        text=response
+        text=response,
+        unfurl_links=True
     )
 
 
@@ -32,14 +33,15 @@ def parse_arxiv_mention(msg):
     #regex = re.compile('.*<https://arxiv.org/pdf/(.+)\\.pdf>.*')
     match = regex.match(msg)
     if match:
-        article = match.group(1)
-        vers_regex = re.compile('^(.*)v[0-9]$')
-        vers_match = vers_regex.match(article)
-        lean_article = article
-        if vers_match:
-            lean_article = vers_match.group(1)
-        #return_msg = msg.replace(f'<https://arxiv.org/pdf/{article}.pdf>', f'https://arxiv.org/abs/{lean_article}')
-        return_msg = msg.replace(f'arxiv.org/pdf/{article}.pdf', f'arxiv.org/abs/{lean_article}')
+        for i in range(1, len(match.groups)):
+            article = match.group(i)
+            vers_regex = re.compile('^(.*)v[0-9]$')
+            vers_match = vers_regex.match(article)
+            lean_article = article
+            if vers_match:
+                lean_article = vers_match.group(1)
+            #return_msg = msg.replace(f'<https://arxiv.org/pdf/{article}.pdf>', f'https://arxiv.org/abs/{lean_article}')
+            return_msg = msg.replace(f'arxiv.org/pdf/{article}.pdf', f'arxiv.org/abs/{lean_article}')
 
 
     # next replace openreview urls
